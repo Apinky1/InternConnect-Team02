@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>InternConnect | Internship Tracker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header><div class="container"><span class="brand">InternConnect</span><p>Internship & Career Readiness Platform</p></div></header>
+  <main class="container">
+    <section class="hero"><div><span class="eyebrow">TEAM02 • WSSU GROUP PROJECT</span><h1>Keep your next opportunity organized.</h1><p>Track applications, stay on top of deadlines, and see how your search is progressing.</p></div></section>
+    <section class="stats" aria-label="Application overview">
+      {% for status in statuses %}<article class="stat"><span>{{ status }}</span><strong>{{ counts[status] }}</strong></article>{% endfor %}
+    </section>
+    {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="flash {{ category }}" role="status">{{ message }}</div>{% endfor %}{% endwith %}
+    <section class="panel"><h2>Add an application</h2><form action="{{ url_for('add_application') }}" method="post" class="add-form"><label>Company<input name="company" placeholder="e.g., Nationwide" maxlength="120" required></label><label>Position<input name="position" placeholder="e.g., Technology Intern" maxlength="120" required></label><label>Deadline<input name="deadline" type="date"></label><button type="submit">Add application</button></form></section>
+    <section class="panel"><h2>Your applications</h2><p class="muted">This is the first working feature. Status changes and deletions save to SQLite.</p>
+      {% if applications %}<div class="table-wrap"><table><thead><tr><th>Company</th><th>Position</th><th>Deadline</th><th>Status</th><th></th></tr></thead><tbody>
+      {% for item in applications %}<tr><td><strong>{{ item['company'] }}</strong></td><td>{{ item['position'] }}</td><td>{{ item['deadline'] or '—' }}</td><td><form action="{{ url_for('update_status', application_id=item['id']) }}" method="post"><select name="status" aria-label="Status for {{ item['company'] }}" onchange="this.form.submit()">{% for status in statuses %}<option value="{{ status }}" {% if item['status'] == status %}selected{% endif %}>{{ status }}</option>{% endfor %}</select><noscript><button>Save</button></noscript></form></td><td><form action="{{ url_for('delete_application', application_id=item['id']) }}" method="post" onsubmit="return confirm('Delete this application?')"><button class="delete" type="submit">Delete</button></form></td></tr>{% endfor %}
+      </tbody></table></div>{% else %}<p class="empty">No applications yet. Add your first one above.</p>{% endif %}
+    </section>
+    <footer>Team02 • Prototype v0.1 • Upcoming: career checklist, interview dates, and progress tools</footer>
+  </main>
+</body>
+</html>
