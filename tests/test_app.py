@@ -183,3 +183,153 @@ def test_database_requires_company(client, db_path):
     with pytest.raises(sqlite3.IntegrityError):
         connection.execute("INSERT INTO applications (company, position) VALUES (NULL, 'B')")
     connection.close()
+
+
+# --- Database location -----------------------------------------------------
+
+def test_database_path_comes_from_environment(tmp_path, monkeypatch):
+    db_file = tmp_path / 'data' / 'custom.db'  # parent folder does not exist yet
+    monkeypatch.setenv('DATABASE_PATH', str(db_file))
+    app = create_app({'TESTING': True})
+    assert app.config['DATABASE'] == str(db_file)
+    assert db_file.exists()
+    client = app.test_client()
+    client.post('/applications', data={'company': 'Env Co', 'position': 'Intern'})
+    assert b'Env Co' in client.get('/').data
+
+
+# --- Interviews and deadlines (events) ---------------------------------------
+
+def add_event(client, application_id=1, type='Interview', event_date='2026-12-01', event_time='', notes=''):
+    return client.post(
+        '/events',
+        data={
+            'application_id': application_id,
+            'type': type,
+            'event_date': event_date,
+            'event_time': event_time,
+            'notes': notes,
+        },
+        follow_redirects=True,
+    )
+
+
+def test_events_page_loads_empty(client):
+    response = client.get('/events')
+    assert response.status_code == 200
+    assert b'Add an application on the dashboard first' in response.data
+
+
+def test_events_page_lists_applications_in_form(client):
+    add(client, company='Nationwide')
+    assert b'Nationwide' in client.get('/events').data
+
+
+def test_add_interview(client):
+    add(client, company='Nationwide', position='Analyst')
+    response = add_event(client, type='Interview', event_date='2026-12-01', event_time='14:30', notes='Zoom')
+    assert b'Interview added.' in response.data
+    assert b'2026-12-01' in response.data
+    assert b'14:30' in response.data
+    assert b'Nationwide' in response.data
+    assert b'Zoom' in response.data
+
+
+def test_add_deadline_without_time_or_notes(client):
+    add(client)
+    response = add_event(client, type='Deadline')
+    assert b'Deadline added.' in response.data
+
+
+def test_events_are_sorted_by_date(client):
+    add(client)
+    add_event(client, event_date='2026-12-20', notes='later-one')
+    add_event(client, event_date='2026-12-02', notes='sooner-one')
+    html = client.get('/events').data
+    assert html.index(b'sooner-one') < html.index(b'later-one')
+
+
+def test_past_events_are_marked(client):
+    add(client)
+    add_event(client, event_date='2000-01-01')
+    assert b'(past)' in client.get('/events').data
+
+
+def test_event_rejects_invalid_type(client):
+    add(client)
+    response = add_event(client, type='Party')
+    assert b'Interview or Deadline' in response.data
+    assert b'Party' not in client.get('/events').data
+
+
+def test_event_requires_date(client):
+    add(client)
+    response = add_event(client, event_date='')
+    assert b'date is required' in response.data
+
+
+def test_event_rejects_invalid_date(client):
+    add(client)
+    assert b'valid date' in add_event(client, event_date='2026-02-31').data
+    assert b'valid date' in add_event(client, event_date='tomorrow').data
+
+
+def test_event_rejects_invalid_time(client):
+    add(client)
+    assert b'valid time' in add_event(client, event_time='25:99').data
+    assert b'valid time' in add_event(client, event_time='noon').data
+
+
+def test_event_rejects_long_notes(client):
+    add(client)
+    response = add_event(client, notes='x' * 501)
+    assert b'500 characters' in response.data
+
+
+def test_event_rejects_missing_application(client):
+    response = add_event(client, application_id=999)
+    assert b'does not exist' in response.data
+
+
+def test_event_rejects_non_numeric_application(client):
+    add(client)
+    response = add_event(client, application_id='abc')
+    assert b'Choose an application' in response.data
+
+
+def test_delete_event(client):
+    add(client)
+    add_event(client, notes='delete-me')
+    response = client.post('/events/1/delete', follow_redirects=True)
+    assert b'Event deleted.' in response.data
+    assert b'delete-me' not in response.data
+
+
+def test_delete_missing_event_returns_404(client):
+    assert client.post('/events/999/delete').status_code == 404
+
+
+def test_deleting_application_deletes_its_events(client, db_path):
+    add(client)
+    add_event(client, notes='orphan-check')
+    client.post('/applications/1/delete')
+    connection = sqlite3.connect(db_path)
+    remaining = connection.execute('SELECT COUNT(*) FROM events').fetchone()[0]
+    connection.close()
+    assert remaining == 0
+
+
+def test_database_rejects_event_for_missing_application(client, db_path):
+    connection = sqlite3.connect(db_path)
+    connection.execute('PRAGMA foreign_keys = ON')
+    with pytest.raises(sqlite3.IntegrityError):
+        connection.execute("INSERT INTO events (application_id, type, event_date) VALUES (999, 'Interview', '2026-12-01')")
+    connection.close()
+
+
+def test_database_rejects_invalid_event_type(client, db_path):
+    add(client)
+    connection = sqlite3.connect(db_path)
+    with pytest.raises(sqlite3.IntegrityError):
+        connection.execute("INSERT INTO events (application_id, type, event_date) VALUES (1, 'Party', '2026-12-01')")
+    connection.close()
