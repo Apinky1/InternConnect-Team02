@@ -1,0 +1,42 @@
+{# Dashboard cards for upcoming events and checklist progress.
+   Included from index.html. Aliyah: restyle freely, but keep the variables
+   (upcoming_events, checklist) and the url_for links. #}
+
+<section id="dashboard-extras" class="content-card">
+  <div class="section-heading">
+    <div>
+      <span class="section-label">PROGRESS</span>
+      <h2>Upcoming &amp; Career Readiness</h2>
+    </div>
+  </div>
+
+  <!-- CHECKLIST PROGRESS -->
+  <article>
+    <h3>Career-Readiness Checklist</h3>
+    <p>
+      <strong>{{ checklist['done'] }} of {{ checklist['total'] }}</strong> complete
+      ({{ checklist['percent'] }}%)
+    </p>
+    <progress value="{{ checklist['done'] }}" max="{{ checklist['total'] or 1 }}"
+              aria-label="Checklist progress">{{ checklist['percent'] }}%</progress>
+    <p><a href="{{ url_for('checklist') }}">Open checklist &rarr;</a></p>
+  </article>
+
+  <!-- UPCOMING EVENTS -->
+  <article>
+    <h3>Upcoming Interviews &amp; Deadlines</h3>
+    {% if upcoming_events %}
+    <ul>
+      {% for event in upcoming_events %}
+      <li>
+        <strong>{{ event['event_date'] }}{% if event['event_time'] %} {{ event['event_time'] }}{% endif %}</strong>
+        &mdash; {{ event['type'] }}: {{ event['company'] }} ({{ event['position'] }})
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted">Nothing coming up. Add an interview or deadline to see it here.</p>
+    {% endif %}
+    <p><a href="{{ url_for('events') }}">Manage interviews &amp; deadlines &rarr;</a></p>
+  </article>
+</section>

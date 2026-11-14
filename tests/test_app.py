@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import date, timedelta
 
 import pytest
 from app import create_app
@@ -333,3 +334,154 @@ def test_database_rejects_invalid_event_type(client, db_path):
     with pytest.raises(sqlite3.IntegrityError):
         connection.execute("INSERT INTO events (application_id, type, event_date) VALUES (1, 'Party', '2026-12-01')")
     connection.close()
+
+
+# --- Career-readiness checklist ----------------------------------------------
+
+def checklist_rows(db_path):
+    connection = sqlite3.connect(db_path)
+    rows = connection.execute('SELECT id, title, completed FROM checklist_items ORDER BY id').fetchall()
+    connection.close()
+    return rows
+
+
+def test_checklist_is_seeded_with_defaults(client, db_path):
+    rows = checklist_rows(db_path)
+    assert len(rows) == 10
+    assert all(completed == 0 for _, _, completed in rows)
+    assert b'Update your resume' in client.get('/checklist').data
+
+
+def test_checklist_seeding_does_not_duplicate_on_restart(client, db_path):
+    create_app({'TESTING': True, 'DATABASE': db_path})  # simulates restarting the app
+    assert len(checklist_rows(db_path)) == 10
+
+
+def test_checklist_progress_starts_at_zero(client):
+    html = client.get('/checklist').data
+    assert b'0 of 10' in html
+    assert b'(0%)' in html
+
+
+def test_toggle_marks_complete_and_updates_progress(client, db_path):
+    response = client.post('/checklist/1/toggle', follow_redirects=True)
+    assert response.status_code == 200
+    assert b'1 of 10' in response.data
+    assert b'(10%)' in response.data
+    assert checklist_rows(db_path)[0][2] == 1
+
+
+def test_toggle_twice_unchecks(client, db_path):
+    client.post('/checklist/1/toggle')
+    client.post('/checklist/1/toggle')
+    assert checklist_rows(db_path)[0][2] == 0
+
+
+def test_toggle_missing_item_returns_404(client):
+    assert client.post('/checklist/999/toggle').status_code == 404
+
+
+def test_progress_rounds_to_whole_percent(client):
+    for item_id in (1, 2, 3):
+        client.post(f'/checklist/{item_id}/toggle')
+    assert b'3 of 10' in client.get('/checklist').data
+    assert b'(30%)' in client.get('/checklist').data
+
+
+def test_add_custom_checklist_item(client, db_path):
+    response = client.post('/checklist', data={'title': '  Finish portfolio site  '}, follow_redirects=True)
+    assert b'Checklist item added.' in response.data
+    assert b'Finish portfolio site' in response.data
+    assert len(checklist_rows(db_path)) == 11
+    assert b'0 of 11' in response.data
+
+
+def test_add_checklist_item_rejects_blank(client, db_path):
+    response = client.post('/checklist', data={'title': '   '}, follow_redirects=True)
+    assert b'required' in response.data
+    assert len(checklist_rows(db_path)) == 10
+
+
+def test_add_checklist_item_rejects_too_long(client, db_path):
+    response = client.post('/checklist', data={'title': 'x' * 121}, follow_redirects=True)
+    assert b'120 characters' in response.data
+    assert len(checklist_rows(db_path)) == 10
+
+
+def test_delete_checklist_item(client, db_path):
+    response = client.post('/checklist/1/delete', follow_redirects=True)
+    assert b'Checklist item deleted.' in response.data
+    assert len(checklist_rows(db_path)) == 9
+    assert b'0 of 9' in response.data
+
+
+def test_delete_missing_checklist_item_returns_404(client):
+    assert client.post('/checklist/999/delete').status_code == 404
+
+
+def test_empty_checklist_shows_message_and_zero_percent(client):
+    for item_id in range(1, 11):
+        client.post(f'/checklist/{item_id}/delete')
+    html = client.get('/checklist').data
+    assert b'Your checklist is empty' in html
+    assert b'(0%)' in html
+
+
+def test_database_rejects_invalid_completed_value(client, db_path):
+    connection = sqlite3.connect(db_path)
+    with pytest.raises(sqlite3.IntegrityError):
+        connection.execute("INSERT INTO checklist_items (title, completed) VALUES ('x', 5)")
+    connection.close()
+
+
+# --- Dashboard additions -----------------------------------------------------
+
+def days_from_today(days):
+    return (date.today() + timedelta(days=days)).isoformat()
+
+
+def test_dashboard_shows_checklist_progress(client):
+    client.post('/checklist/1/toggle')
+    client.post('/checklist/2/toggle')
+    html = client.get('/').data
+    assert b'2 of 10' in html
+    assert b'(20%)' in html
+    assert b'/checklist' in html
+
+
+def test_dashboard_with_no_events_shows_empty_message(client):
+    assert b'Nothing coming up' in client.get('/').data
+
+
+def test_dashboard_shows_upcoming_events(client):
+    add(client, company='Nationwide')
+    add_event(client, type='Interview', event_date=days_from_today(3), event_time='09:30')
+    html = client.get('/').data
+    assert b'Nationwide' in html
+    assert days_from_today(3).encode() in html
+    assert b'09:30' in html
+
+
+def test_dashboard_hides_past_events(client):
+    add(client)
+    add_event(client, event_date='2000-01-01', notes='old')
+    assert b'2000-01-01' not in client.get('/').data
+
+
+def test_dashboard_includes_events_happening_today(client):
+    add(client)
+    add_event(client, type='Deadline', event_date=days_from_today(0))
+    assert b'Nothing coming up' not in client.get('/').data
+
+
+def test_dashboard_limits_and_orders_upcoming_events(client):
+    add(client)
+    for offset in (9, 2, 7, 4, 6, 3, 8):  # 7 events, added out of order
+        add_event(client, event_date=days_from_today(offset))
+    html = client.get('/').data.decode()
+    # Sorted, the events are +2, +3, +4, +6, +7, +8, +9; only the first five are shown.
+    assert days_from_today(2) in html
+    assert days_from_today(7) in html
+    assert days_from_today(8) not in html
+    assert days_from_today(9) not in html
+    assert html.index(days_from_today(2)) < html.index(days_from_today(3)) < html.index(days_from_today(4))

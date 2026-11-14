@@ -9,6 +9,19 @@ STATUSES = ('Applied', 'Interviewing', 'Offer', 'Rejected')
 EVENT_TYPES = ('Interview', 'Deadline')
 MAX_TEXT_LENGTH = 120
 MAX_NOTES_LENGTH = 500
+UPCOMING_EVENT_LIMIT = 5
+DEFAULT_CHECKLIST_ITEMS = (
+    'Update your resume',
+    'Get your resume reviewed by career services',
+    'Create or update your LinkedIn profile',
+    'Write a general cover letter template',
+    'Build a list of target companies',
+    'Prepare a 30-second introduction about yourself',
+    'Practice a mock interview',
+    'Ask a professor or mentor for a reference',
+    'Attend a career fair or networking event',
+    'Set up job and internship alerts',
+)
 
 
 def clean_application_form(form):
@@ -69,6 +82,16 @@ def clean_event_form(form):
     return values, None
 
 
+def clean_checklist_title(form):
+    """Validate a custom checklist item title. Returns (title, error)."""
+    title = form.get('title', '').strip()
+    if not title:
+        return title, 'Checklist item text is required.'
+    if len(title) > MAX_TEXT_LENGTH:
+        return title, f'Checklist items must be {MAX_TEXT_LENGTH} characters or fewer.'
+    return title, None
+
+
 def create_app(test_config=None):
     app = Flask(__name__)
     app.config.update(
@@ -108,13 +131,48 @@ def create_app(test_config=None):
                 notes TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )''')
+            connection.execute('''CREATE TABLE IF NOT EXISTS checklist_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                completed INTEGER NOT NULL DEFAULT 0 CHECK (completed IN (0, 1)),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )''')
+            # Seed the starter checklist only into an empty table, so restarts never duplicate items.
+            if connection.execute('SELECT COUNT(*) FROM checklist_items').fetchone()[0] == 0:
+                connection.executemany(
+                    'INSERT INTO checklist_items (title) VALUES (?)',
+                    [(title,) for title in DEFAULT_CHECKLIST_ITEMS],
+                )
+
+    def checklist_progress(connection):
+        total, done = connection.execute(
+            'SELECT COUNT(*), COALESCE(SUM(completed), 0) FROM checklist_items'
+        ).fetchone()
+        percent = round(done / total * 100) if total else 0
+        return {'done': done, 'total': total, 'percent': percent}
 
     @app.route('/')
     def index():
         with get_db() as connection:
             applications = connection.execute('SELECT * FROM applications ORDER BY id DESC').fetchall()
+            upcoming_events = connection.execute(
+                '''SELECT events.*, applications.company, applications.position
+                   FROM events JOIN applications ON applications.id = events.application_id
+                   WHERE events.event_date >= ?
+                   ORDER BY events.event_date, COALESCE(events.event_time, ''), events.id
+                   LIMIT ?''',
+                (date.today().isoformat(), UPCOMING_EVENT_LIMIT),
+            ).fetchall()
+            checklist = checklist_progress(connection)
         counts = {status: sum(a['status'] == status for a in applications) for status in STATUSES}
-        return render_template('index.html', applications=applications, statuses=STATUSES, counts=counts)
+        return render_template(
+            'index.html',
+            applications=applications,
+            statuses=STATUSES,
+            counts=counts,
+            upcoming_events=upcoming_events,
+            checklist=checklist,
+        )
 
     @app.post('/applications')
     def add_application():
@@ -220,6 +278,43 @@ def create_app(test_config=None):
             abort(404)
         flash('Event deleted.', 'success')
         return redirect(url_for('events'))
+
+    @app.get('/checklist')
+    def checklist():
+        with get_db() as connection:
+            items = connection.execute('SELECT * FROM checklist_items ORDER BY id').fetchall()
+            progress = checklist_progress(connection)
+        return render_template('checklist.html', items=items, progress=progress)
+
+    @app.post('/checklist')
+    def add_checklist_item():
+        title, error = clean_checklist_title(request.form)
+        if error:
+            flash(error, 'error')
+            return redirect(url_for('checklist'))
+        with get_db() as connection:
+            connection.execute('INSERT INTO checklist_items (title) VALUES (?)', (title,))
+        flash('Checklist item added.', 'success')
+        return redirect(url_for('checklist'))
+
+    @app.post('/checklist/<int:item_id>/toggle')
+    def toggle_checklist_item(item_id):
+        with get_db() as connection:
+            cursor = connection.execute(
+                'UPDATE checklist_items SET completed = 1 - completed WHERE id = ?', (item_id,)
+            )
+        if cursor.rowcount == 0:
+            abort(404)
+        return redirect(url_for('checklist'))
+
+    @app.post('/checklist/<int:item_id>/delete')
+    def delete_checklist_item(item_id):
+        with get_db() as connection:
+            cursor = connection.execute('DELETE FROM checklist_items WHERE id = ?', (item_id,))
+        if cursor.rowcount == 0:
+            abort(404)
+        flash('Checklist item deleted.', 'success')
+        return redirect(url_for('checklist'))
 
     @app.get('/health')
     def health():
