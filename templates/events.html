@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InternConnect | Interviews &amp; Deadlines</title>
+  <link rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+<main class="main-content">
+
+  <p><a href="{{ url_for('index') }}">&larr; Back to dashboard</a></p>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="flash {{ category }}" role="status">
+      {{ message }}
+    </div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- ADD EVENT -->
+  <section id="add-event" class="content-card">
+    <div class="section-heading">
+      <div>
+        <span class="section-label">NEW EVENT</span>
+        <h2>Add an Interview or Deadline</h2>
+      </div>
+    </div>
+
+    {% if applications %}
+    <form action="{{ url_for('add_event') }}" method="post" class="application-form">
+
+      <label>
+        Application
+        <select name="application_id" required>
+          {% for app in applications %}
+          <option value="{{ app['id'] }}">{{ app['company'] }} &mdash; {{ app['position'] }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>
+        Type
+        <select name="type" required>
+          {% for event_type in event_types %}
+          <option value="{{ event_type }}">{{ event_type }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>
+        Date
+        <input type="date" name="event_date" required>
+      </label>
+
+      <label>
+        Time (optional)
+        <input type="time" name="event_time">
+      </label>
+
+      <label>
+        Notes (optional)
+        <input type="text" name="notes" maxlength="500"
+               placeholder="e.g. Zoom link, interviewer name">
+      </label>
+
+      <button type="submit" class="primary-button">+ Add Event</button>
+    </form>
+    {% else %}
+    <p class="muted">Add an application on the dashboard first, then you can attach interviews and deadlines to it.</p>
+    {% endif %}
+  </section>
+
+  <!-- EVENT LIST -->
+  <section id="events" class="content-card">
+    <div class="section-heading">
+      <div>
+        <span class="section-label">SCHEDULE</span>
+        <h2>Interviews &amp; Deadlines</h2>
+      </div>
+    </div>
+
+    {% if events %}
+    <div class="table-wrap">
+      <table class="applications-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Type</th>
+            <th>Application</th>
+            <th>Notes</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for event in events %}
+          <tr>
+            <td>
+              {{ event['event_date'] }}
+              {% if event['event_date'] < today %}<span class="muted">(past)</span>{% endif %}
+            </td>
+            <td>{{ event['event_time'] or '—' }}</td>
+            <td>{{ event['type'] }}</td>
+            <td>{{ event['company'] }} &mdash; {{ event['position'] }}</td>
+            <td>{{ event['notes'] or '—' }}</td>
+            <td>
+              <form action="{{ url_for('delete_event', event_id=event['id']) }}"
+                    method="post"
+                    onsubmit="return confirm('Delete this event?')">
+                <button type="submit" class="delete-button">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <h3>Nothing scheduled yet</h3>
+      <p>Add your first interview or deadline above.</p>
+    </div>
+    {% endif %}
+  </section>
+
+</main>
+</body>
+</html>
