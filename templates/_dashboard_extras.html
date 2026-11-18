@@ -1,42 +1,102 @@
-{# Dashboard cards for upcoming events and checklist progress.
-   Included from index.html. Aliyah: restyle freely, but keep the variables
-   (upcoming_events, checklist) and the url_for links. #}
+
+{# Dashboard extras: checklist progress and upcoming events. #}
 
 <section id="dashboard-extras" class="content-card">
+
   <div class="section-heading">
     <div>
-      <span class="section-label">PROGRESS</span>
-      <h2>Upcoming &amp; Career Readiness</h2>
+      <span class="section-label">YOUR CAREER JOURNEY</span>
+      <h2>Progress &amp; Upcoming Events</h2>
+      <p>Stay on track with your career goals and important dates.</p>
     </div>
   </div>
 
-  <!-- CHECKLIST PROGRESS -->
-  <article>
-    <h3>Career-Readiness Checklist</h3>
-    <p>
-      <strong>{{ checklist['done'] }} of {{ checklist['total'] }}</strong> complete
-      ({{ checklist['percent'] }}%)
-    </p>
-    <progress value="{{ checklist['done'] }}" max="{{ checklist['total'] or 1 }}"
-              aria-label="Checklist progress">{{ checklist['percent'] }}%</progress>
-    <p><a href="{{ url_for('checklist') }}">Open checklist &rarr;</a></p>
-  </article>
+  <div class="extras-grid">
 
-  <!-- UPCOMING EVENTS -->
-  <article>
-    <h3>Upcoming Interviews &amp; Deadlines</h3>
-    {% if upcoming_events %}
-    <ul>
-      {% for event in upcoming_events %}
-      <li>
-        <strong>{{ event['event_date'] }}{% if event['event_time'] %} {{ event['event_time'] }}{% endif %}</strong>
-        &mdash; {{ event['type'] }}: {{ event['company'] }} ({{ event['position'] }})
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <p class="muted">Nothing coming up. Add an interview or deadline to see it here.</p>
-    {% endif %}
-    <p><a href="{{ url_for('events') }}">Manage interviews &amp; deadlines &rarr;</a></p>
-  </article>
+    <!-- CAREER READINESS CARD -->
+    <article class="extras-card">
+      <div class="extras-card-heading">
+        <span class="extras-icon">✓</span>
+        <h3>Career Readiness</h3>
+      </div>
+
+      <p class="extras-description">
+        Keep building the skills and habits that prepare you
+        for your next opportunity.
+      </p>
+
+      
+   <div class="extras-progress-info">
+     <strong>
+    {{ checklist['done'] }} of {{ checklist['total'] }}
+     </strong>
+
+    <span>
+    ({{ checklist['percent'] }}%)
+    </span>
+   </div>
+
+
+      <progress class="extras-progress-bar"
+                value="{{ checklist['done'] }}"
+                max="{{ checklist['total'] or 1 }}"
+                aria-label="Career readiness progress">
+        {{ checklist['percent'] }}%
+      </progress>
+
+      <a href="{{ url_for('checklist') }}" class="extras-link">
+        View Career Checklist →
+      </a>
+    </article>
+
+    <!-- UPCOMING EVENTS CARD -->
+    <article class="extras-card">
+      <div class="extras-card-heading">
+        <span class="extras-icon">◷</span>
+        <h3>Upcoming Events</h3>
+      </div>
+
+      <p class="extras-description">
+        Stay informed about upcoming interviews
+        and application deadlines.
+      </p>
+
+      {% if upcoming_events %}
+
+      <ul class="extras-events-list">
+        {% for event in upcoming_events %}
+        <li class="extras-event">
+          <span class="extras-event-date">
+            {{ event['event_date'] }}
+            {% if event['event_time'] %}
+              · {{ event['event_time'] }}
+            {% endif %}
+          </span>
+
+          <strong>{{ event['type'] }}</strong>
+
+          <span>
+            {{ event['company'] }} — {{ event['position'] }}
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+
+      {% else %}
+
+      
+   <div class="extras-empty">
+     <p>Nothing coming up.</p>
+     <span>Add an interview or deadline to get started.</span>
+   </div>
+
+
+      {% endif %}
+
+      <a href="{{ url_for('events') }}" class="extras-link">
+        Manage Interviews &amp; Deadlines →
+      </a>
+    </article>
+
+  </div>
 </section>

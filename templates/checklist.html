@@ -1,5 +1,7 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,91 +11,184 @@
 </head>
 
 <body>
-<main class="main-content">
+<div class="app-layout">
 
-  <p><a href="{{ url_for('index') }}">&larr; Back to dashboard</a></p>
-
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}
-    <div class="flash {{ category }}" role="status">
-      {{ message }}
-    </div>
-    {% endfor %}
-  {% endwith %}
-
-  <!-- PROGRESS -->
-  <section id="checklist-progress" class="content-card">
-    <div class="section-heading">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">IC</div>
       <div>
-        <span class="section-label">CAREER READINESS</span>
-        <h2>Your Checklist Progress</h2>
-      </div>
-    </div>
-    <p>
-      <strong>{{ progress['done'] }} of {{ progress['total'] }}</strong> complete
-      ({{ progress['percent'] }}%)
-    </p>
-    <progress value="{{ progress['done'] }}" max="{{ progress['total'] or 1 }}"
-              aria-label="Checklist progress">{{ progress['percent'] }}%</progress>
-  </section>
-
-  <!-- ITEMS -->
-  <section id="checklist" class="content-card">
-    <div class="section-heading">
-      <div>
-        <span class="section-label">TO-DO</span>
-        <h2>Career Readiness Checklist</h2>
+        <h2>InternConnect</h2>
+        <p>Career Readiness Hub</p>
       </div>
     </div>
 
-    {% if items %}
-    <ul class="checklist">
-      {% for item in items %}
-      <li>
-        <form action="{{ url_for('toggle_checklist_item', item_id=item['id']) }}"
-              method="post" style="display:inline">
-          <button type="submit"
-                  aria-label="Mark as {{ 'not done' if item['completed'] else 'done' }}">
-            {{ '☑' if item['completed'] else '☐' }}
-          </button>
-        </form>
-        <span {% if item['completed'] %}style="text-decoration: line-through"{% endif %}>
-          {{ item['title'] }}
-        </span>
-        <form action="{{ url_for('delete_checklist_item', item_id=item['id']) }}"
-              method="post" style="display:inline"
-              onsubmit="return confirm('Delete this checklist item?')">
-          <button type="submit" class="delete-button">Delete</button>
-        </form>
-      </li>
+    <div class="sidebar-label">WORKSPACE</div>
+
+    <nav class="sidebar-nav" aria-label="Main navigation">
+      <a href="{{ url_for('index') }}#dashboard" class="nav-link">
+        <span>▦</span> Dashboard
+      </a>
+
+      <a href="{{ url_for('index') }}#add-application" class="nav-link">
+        <span>＋</span> Add Application
+      </a>
+
+      <a href="{{ url_for('index') }}#applications" class="nav-link">
+        <span>▤</span> My Applications
+      </a>
+
+      <a href="{{ url_for('events') }}" class="nav-link">
+        <span>◷</span> Events
+      </a>
+
+      <a href="{{ url_for('checklist') }}"
+         class="nav-link active" aria-current="page">
+        <span>✓</span> Career Checklist
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-note">
+        <span>✦</span>
+        <p>Every opportunity starts with a step forward.</p>
+      </div>
+      <small>Team02 | WSSU Project</small>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <div class="topbar">
+      <div>
+        <span class="page-label">YOUR WORKSPACE</span>
+        <h1>Career Readiness Checklist</h1>
+        <p>Small steps today lead to big opportunities tomorrow.</p>
+      </div>
+    </div>
+
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}" role="status">
+          {{ message }}
+        </div>
       {% endfor %}
-    </ul>
-    {% else %}
-    <div class="empty-state">
-      <h3>Your checklist is empty</h3>
-      <p>Add your first item below.</p>
-    </div>
-    {% endif %}
-  </section>
+    {% endwith %}
 
-  <!-- ADD ITEM -->
-  <section id="add-checklist-item" class="content-card">
-    <div class="section-heading">
-      <div>
-        <span class="section-label">CUSTOMIZE</span>
-        <h2>Add Your Own Item</h2>
+    <!-- PROGRESS -->
+    <section id="checklist-progress" class="content-card">
+      <div class="section-heading">
+        <div>
+          <span class="section-label">YOUR PROGRESS</span>
+          <h2>Career Readiness Progress</h2>
+          <p>Track how much you've accomplished.</p>
+        </div>
       </div>
-    </div>
-    <form action="{{ url_for('add_checklist_item') }}" method="post" class="application-form">
-      <label>
-        Checklist item
-        <input type="text" name="title" maxlength="120" required
-               placeholder="e.g. Finish portfolio website">
-      </label>
-      <button type="submit" class="primary-button">+ Add Item</button>
-    </form>
-  </section>
 
-</main>
+      <div class="readiness-summary">
+        <span class="readiness-count">
+          {{ progress['done'] }} of {{ progress['total'] }}
+        </span>
+      
+        <span class="readiness-percent">
+         ({{ progress['percent'] }}%)
+        </span>
+
+      </div>
+
+      <progress class="readiness-progress"
+                value="{{ progress['done'] }}"
+                max="{{ progress['total'] or 1 }}"
+                aria-label="Checklist progress">
+        {{ progress['percent'] }}%
+      </progress>
+    </section>
+
+    <!-- CHECKLIST ITEMS -->
+    <section id="checklist" class="content-card">
+      <div class="section-heading">
+        <div>
+          <span class="section-label">YOUR TASKS</span>
+          <h2>Career Readiness Tasks</h2>
+          <p>Complete each task as you prepare for your career.</p>
+        </div>
+      </div>
+
+      {% if items %}
+      <ul class="readiness-list">
+        {% for item in items %}
+        <li class="readiness-item">
+
+          <form
+            action="{{ url_for('toggle_checklist_item', item_id=item['id']) }}"
+            method="post">
+
+            <button type="submit"
+                    class="readiness-toggle"
+                    aria-label="Mark as {{ 'not done' if item['completed'] else 'done' }}">
+              {{ '☑' if item['completed'] else '☐' }}
+            </button>
+          </form>
+
+          <span class="readiness-title
+                       {% if item['completed'] %}is-complete{% endif %}">
+            {{ item['title'] }}
+          </span>
+
+          <form
+            action="{{ url_for('delete_checklist_item', item_id=item['id']) }}"
+            method="post"
+            onsubmit="return confirm('Delete this checklist item?')">
+
+            <button type="submit" class="delete-button">
+              Delete
+            </button>
+          </form>
+
+        </li>
+        {% endfor %}
+      </ul>
+
+      {% else %}
+      <div class="empty-state">
+        <h3>Your checklist is empty</h3>
+        <p>Add your first career readiness task below.</p>
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- ADD NEW ITEM -->
+    <section id="add-checklist-item" class="content-card">
+      <div class="section-heading">
+        <div>
+          <span class="section-label">PERSONALIZE YOUR PLAN</span>
+          <h2>Add a Custom Task</h2>
+          <p>Include any additional steps in your career journey.</p>
+        </div>
+      </div>
+
+      <form action="{{ url_for('add_checklist_item') }}"
+            method="post" class="application-form">
+
+        <label>
+          Task Name
+          <input type="text"
+                 name="title"
+                 maxlength="120"
+                 required
+                 placeholder="e.g. Finish portfolio website">
+        </label>
+
+        <button type="submit" class="primary-button">
+          + Add Task
+        </button>
+
+      </form>
+    </section>
+
+  </main>
+</div>
 </body>
 </html>

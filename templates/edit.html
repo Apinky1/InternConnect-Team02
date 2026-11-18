@@ -1,5 +1,7 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,52 +11,130 @@
 </head>
 
 <body>
-<main class="main-content">
+<div class="app-layout">
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}
-    <div class="flash {{ category }}" role="status">
-      {{ message }}
-    </div>
-    {% endfor %}
-  {% endwith %}
-
-  <section class="content-card">
-    <div class="section-heading">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">IC</div>
       <div>
-        <span class="section-label">EDIT OPPORTUNITY</span>
-        <h2>Edit Application</h2>
+        <h2>InternConnect</h2>
+        <p>Career Readiness Hub</p>
       </div>
     </div>
 
-    <form action="{{ url_for('edit_application', application_id=application['id']) }}"
-          method="post" class="application-form">
+    <div class="sidebar-label">WORKSPACE</div>
 
-      <label>
-        Company Name
-        <input type="text" name="company"
-               value="{{ application['company'] }}"
-               maxlength="120" required>
-      </label>
+    <nav class="sidebar-nav" aria-label="Main navigation">
+      <a href="{{ url_for('index') }}#dashboard" class="nav-link">
+        <span>▦</span> Dashboard
+      </a>
 
-      <label>
-        Position
-        <input type="text" name="position"
-               value="{{ application['position'] }}"
-               maxlength="120" required>
-      </label>
+      <a href="{{ url_for('index') }}#add-application" class="nav-link">
+        <span>＋</span> Add Application
+      </a>
 
-      <label>
-        Application Deadline
-        <input type="date" name="deadline"
-               value="{{ application['deadline'] or '' }}">
-      </label>
+      <a href="{{ url_for('index') }}#applications" class="nav-link active">
+        <span>▤</span> My Applications
+      </a>
 
-      <button type="submit" class="primary-button">Save Changes</button>
-      <a href="{{ url_for('index') }}#applications">Cancel</a>
-    </form>
-  </section>
+      <a href="{{ url_for('events') }}" class="nav-link">
+        <span>◷</span> Events
+      </a>
 
-</main>
+      <a href="{{ url_for('checklist') }}" class="nav-link">
+        <span>✓</span> Career Checklist
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-note">
+        <span>✦</span>
+        <p>Every opportunity starts with a step forward.</p>
+      </div>
+      <small>Team02 | WSSU Project</small>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <div class="topbar">
+      <div>
+        <span class="page-label">YOUR WORKSPACE</span>
+        <h1>Edit Application</h1>
+        <p>Keep your internship opportunities up to date.</p>
+      </div>
+    </div>
+
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}" role="status">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+
+    <!-- EDIT FORM -->
+    <section class="content-card">
+
+      <div class="section-heading">
+        <div>
+          <span class="section-label">EDIT OPPORTUNITY</span>
+          <h2>Application Details</h2>
+          <p>Update the information for this opportunity.</p>
+        </div>
+      </div>
+
+      <form
+        action="{{ url_for('edit_application', application_id=application['id']) }}"
+        method="post"
+        class="application-form">
+
+        <label>
+          Company Name
+          <input
+            type="text"
+            name="company"
+            value="{{ application['company'] }}"
+            maxlength="120"
+            required>
+        </label>
+
+        <label>
+          Position
+          <input
+            type="text"
+            name="position"
+            value="{{ application['position'] }}"
+            maxlength="120"
+            required>
+        </label>
+
+        <label>
+          Application Deadline
+          <input
+            type="date"
+            name="deadline"
+            value="{{ application['deadline'] or '' }}">
+        </label>
+
+        <div class="edit-actions">
+          <button type="submit" class="primary-button">
+            Save Changes
+          </button>
+
+          <a href="{{ url_for('index') }}#applications"
+             class="cancel-link">
+            Cancel
+          </a>
+        </div>
+
+      </form>
+    </section>
+
+  </main>
+</div>
 </body>
 </html>
