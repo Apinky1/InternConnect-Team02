@@ -479,3 +479,313 @@ select:focus {
         flex-direction: column;
     }
 }
+
+/* Career Readiness Checklist */
+
+.checklist-progress {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 20px 0 12px;
+    font-size: 14px;
+    color: var(--dark-teal);
+}
+
+.checklist-progress strong {
+    color: var(--teal);
+}
+
+.progress-track {
+    height: 12px;
+    background: #dcefe7;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+#progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--teal);
+    border-radius: 20px;
+    transition: width 0.3s ease;
+}
+
+.checklist-items {
+    display: grid;
+    gap: 12px;
+}
+
+.checklist-items label {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #f4faf7;
+    padding: 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.checklist-items label:hover {
+    background: #e6f5ee;
+}
+
+.checklist-items input[type="checkbox"] {
+    width: 19px;
+    height: 19px;
+    margin: 0;
+    accent-color: var(--teal);
+    flex-shrink: 0;
+}
+
+.checklist-items label:has(input:checked) {
+    background: #e3f4eb;
+    color: var(--teal);
+}
+
+/* Edit Application Page */
+
+.edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.cancel-link {
+  color: var(--dark-teal);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cancel-link:hover {
+  color: var(--teal);
+  text-decoration: underline;
+}
+
+
+/* Career Readiness Checklist Page */
+
+.readiness-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 20px 0 16px;
+}
+
+.readiness-count {
+  color: var(--dark-teal);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.readiness-percent {
+  color: var(--teal);
+  font-weight: 700;
+}
+
+.readiness-progress {
+  width: 100%;
+  height: 16px;
+  accent-color: var(--teal);
+}
+
+.readiness-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+}
+
+.readiness-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #e1ebe7;
+}
+
+.readiness-item:last-child {
+  border-bottom: none;
+}
+
+.readiness-item form {
+  margin: 0;
+}
+
+.readiness-item form:last-child {
+  margin-left: auto;
+}
+
+.readiness-toggle {
+  background: #e5f6ef;
+  color: var(--teal);
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 23px;
+  cursor: pointer;
+}
+
+.readiness-toggle:hover {
+  background: #d3eee3;
+}
+
+.readiness-title {
+  color: var(--dark-teal);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.readiness-title.is-complete {
+  color: #788b86;
+  text-decoration: line-through;
+}
+
+@media (max-width: 600px) {
+  .readiness-item {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+}
+
+
+/* Dashboard Extras */
+
+.extras-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.extras-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 24px;
+  background: #f5faf8;
+  border: 1px solid #dfebe6;
+  border-radius: 18px;
+}
+
+.extras-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.extras-card-heading h3 {
+  margin: 0;
+  font-size: 19px;
+  color: var(--dark-teal);
+}
+
+.extras-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  background: #d7f1e7;
+  color: var(--teal);
+  border-radius: 12px;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.extras-description {
+  margin: 0;
+  color: #617c76;
+  line-height: 1.6;
+}
+
+.extras-progress-info {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.extras-progress-info strong {
+  color: var(--dark-teal);
+  font-size: 20px;
+}
+
+.extras-progress-info span {
+  color: var(--teal);
+  font-weight: 700;
+}
+
+.extras-progress-bar {
+  width: 100%;
+  height: 14px;
+  accent-color: var(--teal);
+}
+
+.extras-events-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.extras-event {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 14px 0;
+  border-bottom: 1px solid #dce9e4;
+}
+
+.extras-event-date {
+  color: var(--teal);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.extras-event strong {
+  color: var(--dark-teal);
+}
+
+.extras-empty {
+  padding: 16px;
+  background: #eaf6f1;
+  border-radius: 12px;
+}
+
+.extras-empty p {
+  margin: 0 0 5px;
+  font-weight: 600;
+  color: var(--dark-teal);
+}
+
+.extras-empty span {
+  color: #617c76;
+  font-size: 14px;
+}
+
+.extras-link {
+  display: inline-block;
+  margin-top: auto;
+  padding-top: 8px;
+  color: var(--teal);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.extras-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 1000px) {
+  .extras-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

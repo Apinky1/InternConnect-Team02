@@ -24,17 +24,29 @@
 
     <div class="sidebar-label">WORKSPACE</div>
 
-    <nav class="sidebar-nav" aria-label="Main navigation">
-      <a href="#dashboard" class="nav-link active">
-        <span>▦</span> Dashboard
-      </a>
-      <a href="#add-application" class="nav-link">
-        <span>＋</span> Add Application
-      </a>
-      <a href="#applications" class="nav-link">
-        <span>▤</span> My Applications
-      </a>
-    </nav>
+    
+<nav class="sidebar-nav" aria-label="Main navigation">
+  <a href="{{ url_for('index') }}#dashboard" class="nav-link active">
+    <span>▦</span> Dashboard
+  </a>
+
+  <a href="{{ url_for('index') }}#add-application" class="nav-link">
+    <span>＋</span> Add Application
+  </a>
+
+  <a href="{{ url_for('index') }}#applications" class="nav-link">
+    <span>▤</span> My Applications
+  </a>
+
+  <a href="{{ url_for('events') }}" class="nav-link">
+    <span>◷</span> Events
+  </a>
+
+  <a href="{{ url_for('checklist') }}" class="nav-link">
+    <span>✓</span> Career Checklist
+  </a>
+</nav>
+
 
     <div class="sidebar-bottom">
       <div class="sidebar-note">
@@ -235,6 +247,7 @@
       </div>
       {% endif %}
     </section>
+
 
     <footer class="footer">
       <span>InternConnect © 2026 | Team02</span>
