@@ -1,44 +1,113 @@
+
 # InternConnect — Team02
 
-Cloud-based internship and career-readiness web application. **Prototype v0.1** includes an application tracker with add, change status, delete, and summary counts. Other features are planned, not implemented.
+**Winston-Salem State University | Software Engineering Group Project**
 
-## Run locally (Windows PowerShell)
+InternConnect is a cloud-based internship and career-readiness web application designed to help students organize internship applications, monitor deadlines, prepare for interviews, and track their career development.
+
+## Live Application
+
+https://internconnect-team02.onrender.com/
+
+## GitHub Repository
+
+https://github.com/Apinky1/InternConnect-Team02
+
+## Core Features
+
+1. **Application Management:** Add, edit, view, and delete internship applications, including company, position, and deadline information.
+2. **Application Status Tracking:** Update application statuses and view summary counts on the dashboard.
+3. **Interview and Deadline Management:** Schedule, view, and delete interviews and important deadlines associated with applications.
+4. **Career Readiness Checklist:** Track career preparation tasks, mark items complete, add custom tasks, and monitor progress.
+5. **Career Dashboard:** View application statistics, checklist progress, and upcoming interviews and deadlines.
+
+## Technologies Used
+
+- Frontend: HTML, CSS, JavaScript, and Jinja2 templates
+- Backend: Python and Flask
+- Database: SQLite
+- Version Control: Git and GitHub
+- Containerization: Docker
+- Cloud Deployment: Render
+- Testing: pytest
+
+## Run Locally (Windows PowerShell)
+
+Clone or download the GitHub repository and open its folder in a terminal.
 
 ```powershell
 py -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-python app.py
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe app.py
 ```
 
-Open http://127.0.0.1:5000 in your browser. If `py` is not available, try `python -m venv .venv`. If activation is blocked, run `.\.venv\Scripts\python.exe -m pip install -r requirements.txt` and `.\.venv\Scripts\python.exe app.py` without activating.
+Open http://127.0.0.1:5000 in your browser.
 
-## Run tests
+If the `py` command is unavailable, use `python -m venv .venv` to create the virtual environment.
+
+## Run Automated Tests
 
 ```powershell
-python -m pytest -q
+.\.venv\Scripts\python.exe -m pytest -q
 ```
 
-## Docker (optional after local verification)
+The integrated application passed all 62 automated tests during final local verification.
+
+## Docker
+
+The repository includes a Dockerfile for containerization.
+
+Build the image:
 
 ```powershell
 docker build -t internconnect .
+```
+
+Run the container:
+
+```powershell
 docker run --rm -p 5000:5000 internconnect
 ```
 
-**Note:** The prototype currently saves data in a local SQLite file. Cloud hosts may use ephemeral storage, so persistence must be addressed before production deployment. This starter does not include accounts/login, resume uploads, AI features, or production security protections. Do not upload private resumes or personal information during testing.
+Open http://127.0.0.1:5000 to access the containerized application.
 
-## Proposed roles (confirm with team)
+## Team Contributions
 
-- Aliyah: project coordination and frontend
-- Makeda: backend and database
-- Taylor: testing, deployment, and documentation plus an application feature
-- Everyone: tests, meaningful GitHub commits, report and presentation
+**Aliyah — Project Coordinator and Frontend Developer**
+- Designed and implemented the user interface and dashboard styling.
+- Integrated frontend templates with the Flask backend.
+- Developed navigation and improved the user experience.
+- Conducted manual functionality and interface testing.
+- Coordinated project progress and GitHub contributions.
 
-## Planned modules
+**Makeda — Backend and Database Developer**
+- Implemented Flask routes, application management, and validation.
+- Developed SQLite database functionality for applications, events, and checklist tasks.
+- Implemented dashboard data integration and error handling.
+- Developed and executed automated tests.
+- Supported backend integration and verification.
 
-- Interview and deadline tracking
-- Career-readiness checklist
-- Progress dashboard improvements
+**Taylor — Product Planning, Documentation, Presentation, and Deployment**
+- Contributed product vision, user stories, and project planning documentation.
+- Prepared presentation and project documentation.
+- Coordinated the Render cloud deployment.
 
-See `docs/next-steps.md`.
+All members collaborated on project development, communication, testing, and final delivery.
+
+## Testing and Quality Assurance
+
+The team tested major user workflows, including application creation, editing, status updates, and deletion; interview and deadline management; checklist progress tracking; and dashboard functionality.
+
+The project includes automated tests for Flask routes, input validation, error handling, and database operations.
+
+## Current Limitations
+
+InternConnect is an academic project and does not include individual user accounts or authentication. The deployed demo should not be used to store sensitive personal information.
+
+The application uses SQLite. Database persistence depends on the deployment environment and configured storage. Render deployments without persistent storage may lose application data during restarts or redeployments.
+
+## Project Documentation
+
+Additional project planning and supporting documentation are located in the `docs` folder.
+
+This application was developed as a collaborative Software Engineering project at Winston-Salem State University.
